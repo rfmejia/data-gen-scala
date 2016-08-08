@@ -1,9 +1,13 @@
-package net.ximity.events.datagen
+package com.github.rfmejia.datagen
 
 import java.time.Instant
 import java.util.UUID
+
 import scala.util.Random
 
+trait FunctionGenerator {
+  def function[T](f: Random => T)(implicit r: Random): T = f(r)
+}
 
 trait ListGenerator extends PrimitiveGenerator {
   def range(start: Int = 0, stop: Int, step: Int = 1): Stream[Int] = (start to stop by step).toStream
@@ -19,17 +23,27 @@ trait ListGenerator extends PrimitiveGenerator {
 trait PrimitiveGenerator {
   def bool(implicit r: Random): Boolean = r.nextBoolean()
 
-  def integer(min: Int = 0, max: Int = Int.MaxValue)(implicit r: Random): Int =
-    (r.nextInt(max - min) + min)
+  def integer(min: Int = 0, max: Int = Int.MaxValue)(implicit r: Random): Int = (r.nextInt(max - min) + min)
 
   def float(min: Double = Double.MinValue, max: Double = Double.MaxValue)(implicit r: Random): Double =
     (r.nextDouble() * max) + min
 
-  def gauss(mu: Double = 0.0f, sigma: Double = 1.0f) = ???
-}
-
-trait Generator {
-  def function[T](f: Random => T)(implicit r: Random): T = f(r)
+  /** Random number over a gaussian distribution. Computed from the **polar form** of the Box-Muller transformation, taken from [here](https://www.taygeta.com/random/gaussian.html). */
+  def gauss(mu: Double = 0.0f, sigma: Double = 1.0f)(implicit r: Random): Double = ???
+  //  {
+  //    var x1, x2, w, y1, y2: double = 0.0f
+  //
+  //    r.nextgaussian()
+  //    do {
+  //      x1 = 2.0 * r.nextdouble - 1.0
+  //      x2 = 2.0 * r.nextdouble - 1.0
+  //      w = x1 * x1 + x2 * x2
+  //    } while (w >= 1.0)
+  //
+  //    w = math.sqrt((-2.0 * math.log(w)) / w);
+  //    y1 = x1 * w;
+  //    y2 = x2 * w;
+  //  }
 }
 
 trait IdentifierGenerator {
@@ -51,7 +65,7 @@ case class CountryData(name: String, iso3166_1: String)
 trait CountryGenerator extends ListGenerator {
   val countryData: Stream[CountryData]
 
-  def country: CountryData = random(countryData)
+  def country(implicit r: Random): CountryData = random(countryData)
 
   def domainZone: String = ???
 }
@@ -79,18 +93,17 @@ trait NameGenerator extends ListGenerator {
 
   def firstName(gender: Option[Gender])(implicit r: Random): String = gender match {
     case Some(Female) => normalize(random(femaleFirstNames))
-    case Some(Male) => normalize(random(maleFirstNames))
-    case None => normalize(random(femaleFirstNames ++ maleFirstNames))
+    case Some(Male)   => normalize(random(maleFirstNames))
+    case None         => normalize(random(femaleFirstNames ++ maleFirstNames))
   }
 
-  def surname(): String = normalize(random(surnames))
+  def surname(implicit r: Random): String = normalize(random(surnames))
 }
 
 trait CompanyNameGenerator extends ListGenerator {
   val companyNames: Stream[String]
 
-  def company: String = random(companyNames)
-
+  def company(implicit r: Random): String = random(companyNames)
 }
 
 trait DateGenerator {
@@ -114,15 +127,15 @@ trait LoremGenerator {
   private def randomLength(implicit r: Random): Int = r.nextInt(maxLength - minLength) * minLength
 
   def lorem(num: Int, loremType: LoremType)(implicit r: Random): String = loremType match {
-    case letters => r.nextString(num)
-    case words => (for(n <- 1 to num) yield lorem(randomLength, letters)).mkString(" ")
-    case sentences =>
-      val ss = for(n <- 1 to num) yield {
+    case `letters` => r.nextString(num)
+    case `words`   => (for (n <- 1 to num) yield lorem(randomLength, letters)).mkString(" ")
+    case `sentences` =>
+      val ss = for (n <- 1 to num) yield {
         val s = lorem(randomLength, words)
         s.head.toUpper + s.tail + "."
       }
       ss.mkString(" ")
-    case paragraphs => (for(n <- 1 to num) yield lorem(randomLength, sentences)).mkString("\n")
+    case `paragraphs` => (for (n <- 1 to num) yield lorem(randomLength, sentences)).mkString("\n")
   }
 }
 
@@ -133,7 +146,6 @@ object JsonGenerator extends PrimitiveGenerator with LoremGenerator {
   val maxLength = 6
 
   def index(): Int = ???
-
 
 }
 
