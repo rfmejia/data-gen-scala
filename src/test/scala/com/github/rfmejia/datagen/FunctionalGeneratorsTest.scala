@@ -59,4 +59,20 @@ class FunctionalGeneratorsTest extends WordSpec with Matchers {
       }
     }
   }
+
+  "A function generator" when {
+    implicit val r = new Random(0)
+    object G extends FunctionGenerator
+
+    "given a function to generate even integers" should {
+      "produce even numbers" in {
+        def f(r: Random) = r.nextInt * 2
+        val times = 100
+
+        for (i <- 1 to 100) {
+          G.function(f) % 2 shouldBe 0
+        }
+      }
+    }
+  }
 }
