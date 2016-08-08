@@ -6,16 +6,6 @@ import scala.util.Random
 
 class FunctionalGeneratorsTest extends WordSpec with Matchers {
 
-  object FunctionalGenerators extends PrimitiveGenerator
-      with FunctionGenerator
-      with ListGenerator
-      with LoremGenerator
-      with DateGenerator
-      with IdentifierGenerator {
-    val minLength = 3
-    val maxLength = 6
-  }
-
   "A primitive generator" when {
     implicit val r = new Random(0)
     object G extends PrimitiveGenerator
@@ -72,6 +62,20 @@ class FunctionalGeneratorsTest extends WordSpec with Matchers {
         for (i <- 1 to 100) {
           G.function(f) % 2 shouldBe 0
         }
+      }
+    }
+  }
+
+  "A list generator" when {
+    implicit val r = new Random(0)
+    object G extends ListGenerator
+    "given a range of elements and a step increment" should {
+      "successfully produce a numerical stream" in {
+        G.range(-100, 100, 5).toList.exists(_ % 5 != 0) shouldBe false
+      }
+
+      "successfully produce a character stream" in {
+        G.range('A', 'Z', 1).map(_.toChar).mkString shouldEqual "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       }
     }
   }
