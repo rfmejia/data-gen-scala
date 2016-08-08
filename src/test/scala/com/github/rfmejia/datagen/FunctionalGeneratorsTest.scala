@@ -79,4 +79,35 @@ class FunctionalGeneratorsTest extends WordSpec with Matchers {
       }
     }
   }
+
+  "A lorem generator" when {
+    implicit val r = new Random(0)
+
+    "given a valid LoremGenerator constraints" should {
+      object G extends LoremGenerator {
+        val (minLength, maxLength) = (5, 8)
+      }
+
+      "generate a word with an arbitrary number of letters" in {
+        val word = G.lorem(10, letters)
+        word.length shouldBe 10
+      }
+
+      "generate a sentence with an arbitrary number of words" in {
+        val sentence = G.lorem(5, words)
+        sentence.split(' ').length shouldBe 5
+      }
+
+      "generate a paragraph with an arbitrary number of sentences" in {
+        val paragraph = G.lorem(5, sentences)
+        paragraph.split('.').length shouldBe 5
+      }
+
+      "generate multiple paragraphs" in {
+        val article = G.lorem(5, paragraphs)
+        println(article)
+        article.split('\n').length shouldBe 5
+      }
+    }
+  }
 }

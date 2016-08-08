@@ -124,13 +124,14 @@ case object paragraphs extends LoremType
 trait LoremGenerator {
   val minLength: Int
   val maxLength: Int
-  assert(maxLength > minLength, "Lorem generator length must be non-zero.")
+  private def randomLength(implicit r: Random): Int = r.nextInt(maxLength - minLength) + minLength
 
-  private def randomLength(implicit r: Random): Int = r.nextInt(maxLength - minLength) * minLength
+  private val letterRange = ((65 to 90) ++ (97 to 122)).map(_.toChar)
+  private def randomChar(implicit r: Random): Char = letterRange.apply(r.nextInt(letterRange.size))
 
   def lorem(num: Int, loremType: LoremType)(implicit r: Random): String = loremType match {
-    case `letters` => r.nextString(num)
-    case `words`   => (for (n <- 1 to num) yield lorem(randomLength, letters)).mkString(" ")
+    case `letters` => (1 to num).map(_ => randomChar).mkString
+    case `words`   => (for (n <- 1 to num) yield lorem(randomLength, letters)).mkString(" ").toLowerCase
     case `sentences` =>
       val ss = for (n <- 1 to num) yield {
         val s = lorem(randomLength, words)
