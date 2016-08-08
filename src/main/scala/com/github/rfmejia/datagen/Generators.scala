@@ -25,8 +25,10 @@ trait PrimitiveGenerator {
 
   def integer(min: Int = 0, max: Int = Int.MaxValue)(implicit r: Random): Int = (r.nextInt(max - min) + min)
 
-  def float(min: Double = Double.MinValue, max: Double = Double.MaxValue)(implicit r: Random): Double =
-    (r.nextDouble() * max) + min
+  def float(min: Double = Double.MinValue, max: Double = Double.MaxValue)(implicit r: Random): Double = {
+    if (min > max) throw new IllegalArgumentException("Range must be non-negative")
+    else (r.nextDouble() * max) + min
+  }
 
   /** Random number over a gaussian distribution. Computed from the **polar form** of the Box-Muller transformation, taken from [here](https://www.taygeta.com/random/gaussian.html). */
   def gauss(mu: Double = 0.0f, sigma: Double = 1.0f)(implicit r: Random): Double = ???
